@@ -1,0 +1,12 @@
+flask
+werkzeug
+demucs
+flask-cors
+librosa
+essentia-tensorflow
+soundfile
+numpy<2.0.0
+scipy 
+google-genai
+websockets
+flask-sock 

@@ -1,0 +1,110 @@
+/* Remove custom cursor, restore default */
+body, button, a, input[type="range"] {
+  cursor: auto;
+}
+
+/* Samurai blade progress bar animation */
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 2s linear infinite;
+}
+
+/* Bouncy progress text */
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+.animate-bounce-x {
+  animation: bounce-x 1.2s infinite;
+}
+
+/* Tooltip custom style (optional) */
+.__react_component_tooltip {
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: #222;
+  color: #ffe082;
+  border-radius: 0.5rem;
+  padding: 0.5em 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 50;
+}
+
+/* Onboarding overlay (for future use) */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+.onboarding-card {
+  background: #18181b;
+  color: #ffe082;
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 32px 0 #000a;
+  max-width: 90vw;
+  max-height: 80vh;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+/* Samurai Sword Styles */
+.sword {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blade {
+  width: 12px;
+  height: 200px;
+  background: linear-gradient(to right, silver, gray);
+  border-radius: 5px;
+  border-left: 2px solid white;
+}
+
+.guard {
+  width: 30px;
+  height: 10px;
+  background: gold;
+  position: relative;
+  top: -5px;
+  border-radius: 5px;
+}
+
+.handle {
+  width: 15px;
+  height: 80px;
+  background: brown;
+  position: relative;
+  top: -5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.wrap {
+  width: 100%;
+  height: 8px;
+  background: black;
+}
+
+/* Sword size variants */
+.sword.w-4 {
+  transform: scale(0.2);
+}
+
+.sword.w-6 {
+  transform: scale(0.3);
+}

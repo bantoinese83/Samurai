@@ -1,0 +1,44 @@
+# Node.js / React
+client/node_modules/
+client/dist/
+client/build/
+
+# Python
+server/__pycache__/
+server/*.pyc
+server/.env
+
+# Virtualenv
+venv/
+.env
+
+# System
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Misc
+*.zip
+*.tar.gz
+
+# OS generated files
+Icon?
+
+# Ignore coverage reports
+coverage/
+
+# Ignore local environment files
+.env.*
+
+# Ignore test output
+junit.xml
+
+# Ignore macOS ._ files
+._* 

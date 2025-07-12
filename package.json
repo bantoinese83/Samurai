@@ -1,0 +1,11 @@
+{
+  "name": "stemsepplus-root",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root package.json for running client and server from project root",
+  "scripts": {
+    "client": "npm --prefix client run dev",
+    "server": "python server/audio_api.py",
+    "lyria-proxy": "cd server && uvicorn lyria_proxy:app --host 0.0.0.0 --port 5002"
+  }
+} 
