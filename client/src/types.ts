@@ -3,6 +3,9 @@
 export interface Stem {
   name: string;
   url: string;
+  tags?: string[];
+  description?: string;
+  transcription?: string;
 }
 
 export interface AudioFeatures {
@@ -40,8 +43,24 @@ export interface ProgressData {
   message: string;
   filename?: string;
   audio_features?: AudioFeatures;
-  stem_analyses?: { [stemName: string]: any };
+  stem_analyses?: { [stemName: string]: AudioFeatures };
   gemini_analysis?: GeminiAnalysis;
   download_url?: string;
   stems?: Stem[];
+}
+
+export interface StemVaultEntry {
+  id: string;
+  original_filename: string;
+  stem_name: string;
+  stem_type?: string | null;
+  url: string;
+  size_bytes?: number | null;
+  created_at?: string | null;
+  analysis?: AudioFeatures | null;
+  tags?: string[];
+  description?: string;
+  transcription?: string;
+  play_count: number;
+  like_count: number;
 } 

@@ -4,19 +4,19 @@ export function resetUIState(
   setDownloadUrl: (url: string | null) => void,
   setError: (err: string | null) => void,
   setSuccess: (s: boolean) => void,
-  setJobCompleted: (jc: boolean) => void,
   setStems: (s: any[]) => void,
   setProgress: (p: number) => void,
   setProgressMessage: (m: string) => void,
   waveSurfers: { [name: string]: WaveSurfer | null },
   eventSourceRef: { current: EventSource | null },
   setAudioFeatures?: (af: any) => void,
-  setStemAnalyses?: (sa: any) => void
+  setStemAnalyses?: (sa: any) => void,
+  setJobCompleted?: (jc: boolean) => void
 ) {
   setDownloadUrl(null);
   setError(null);
   setSuccess(false);
-  setJobCompleted(false);
+  if (setJobCompleted) setJobCompleted(false);
   setStems([]);
   setProgress(0);
   setProgressMessage('');

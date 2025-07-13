@@ -57,22 +57,37 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
         {children && <div className="flex flex-col gap-2 items-center">{children}</div>}
         
         {/* Mute/Unmute button */}
-        <button
-          onClick={onMute}
-          aria-label={muted ? `Unmute ${stem.name}` : `Mute ${stem.name}`}
-          className={`p-2 rounded-lg hover:bg-white/5 transition-colors ${
-            muted ? 'bg-red-500/20' : 'bg-transparent'
-          }`}
-          disabled={loading}
-          data-tooltip-id="stem-tooltip"
-          data-tooltip-content={muted ? 'Unmute' : 'Mute'}
-        >
-          {muted ? (
-            <VolumeX className="w-5 h-5 text-red-400" strokeWidth={2.2} />
-          ) : (
-            <Volume2 className="w-5 h-5 text-yellow-400" strokeWidth={2.2} />
-          )}
-        </button>
+        <div className="flex flex-col items-center justify-center mr-2">
+          <span className="text-xs text-white/50 mb-1">{Math.round(volume * 100)}%</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={volume}
+            onChange={e => onVolume(Number(e.target.value))}
+            className="h-24 w-2 bg-white/10 rounded-full accent-red-500 cursor-pointer vertical-slider"
+            style={{ writingMode: 'bt-lr', WebkitAppearance: 'slider-vertical' }}
+            disabled={loading}
+            aria-label={`Volume for ${stem.name}`}
+            data-tooltip-id="stem-tooltip"
+            data-tooltip-content={`Volume: ${Math.round(volume * 100)}%`}
+          />
+          <button
+            onClick={onMute}
+            aria-label={muted ? `Unmute ${stem.name}` : `Mute ${stem.name}`}
+            className={`mt-2 p-2 rounded-lg hover:bg-white/5 transition-colors ${muted ? 'bg-red-500/20' : 'bg-transparent'}`}
+            disabled={loading}
+            data-tooltip-id="stem-tooltip"
+            data-tooltip-content={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted ? (
+              <VolumeX className="w-5 h-5 text-red-400" strokeWidth={2.2} />
+            ) : (
+              <Volume2 className="w-5 h-5 text-yellow-400" strokeWidth={2.2} />
+            )}
+          </button>
+        </div>
 
         {/* Stem name */}
         <div className="flex-1 text-sm flex items-center gap-2">
@@ -86,33 +101,13 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             </div>
           )}
         </div>
-
-        {/* Volume control */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/50 min-w-[30px]">
-            {Math.round(volume * 100)}%
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={volume}
-            onChange={e => onVolume(Number(e.target.value))}
-            className="w-32 h-2 bg-white/10 rounded-full accent-red-500 cursor-pointer"
-            disabled={loading}
-            aria-label={`Volume for ${stem.name}`}
-            data-tooltip-id="stem-tooltip"
-            data-tooltip-content={`Volume: ${Math.round(volume * 100)}%`}
-          />
-        </div>
       </div>
 
       {/* Waveform container */}
       <div className="relative w-full">
         <motion.div
           ref={handleContainerRef}
-          className={`w-full h-12 bg-neutral-900/80 rounded-lg relative overflow-hidden border border-white/10 ${
+          className={`w-full h-12 bg-neutral-900/80 rounded-lg relative overflow-hidden ${
             isPlaying && !muted ? 'shadow-[0_0_16px_4px_rgba(255,215,64,0.3)]' : ''
           }`}
           style={{ 
@@ -167,13 +162,13 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
       </div>
 
       {/* Debug info (only in development) */}
-      {import.meta.env.DEV && (
+      {import.meta.env.DEV ? (
         <div className="text-xs text-white/30 mt-1">
           Container: {containerReady ? 'Ready' : 'Not ready'} | 
           Loading: {waveformLoading ? 'Yes' : 'No'} |
           Error: {waveformError || 'None'}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

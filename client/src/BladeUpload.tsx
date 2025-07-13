@@ -1,5 +1,5 @@
-import React from 'react';
-import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Download, Music2, Play, PauseCircle, Clock, Key, Volume2, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { UploadCloud, FileAudio, CheckCircle, AlertCircle, Download, Music2, Play, PauseCircle, Clock, Key, Volume2, Zap, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import WaveSurfer from 'wavesurfer.js';
@@ -21,6 +21,7 @@ interface BladeUploadProps {
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onUpload: () => void;
   inputRef: React.RefObject<HTMLInputElement>;
+  onReset?: () => void;
 }
 
 const BladeUpload: React.FC<BladeUploadProps> = ({
@@ -38,6 +39,7 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
   onDragOver,
   onUpload,
   inputRef,
+  onReset,
 }) => {
   // --- Audio preview state ---
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
@@ -45,6 +47,8 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
   const [previewVolume, setPreviewVolume] = React.useState(1);
   const previewWaveRef = React.useRef<HTMLDivElement | null>(null);
   const previewWaveSurfer = React.useRef<WaveSurfer | null>(null);
+  // --- Drag highlight state ---
+  const [isDragActive, setIsDragActive] = useState(false);
 
   // Generate object URL for preview
   React.useEffect(() => {
@@ -101,6 +105,20 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
       previewWaveSurfer.current.pause();
     }
   }, [loading]);
+
+  // Drag event handlers for highlight
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  };
+  const handleDropWrapper = (e: React.DragEvent<HTMLDivElement>) => {
+    setIsDragActive(false);
+    onDrop(e);
+  };
 
   // --- Preview player UI ---
   const renderPreview = () =>
@@ -160,13 +178,27 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
   };
 
   const getBpmDescription = (bpm?: number) => {
-    if (!bpm) return "Unknown tempo";
-    if (bpm < 60) return "Very Slow";
-    if (bpm < 80) return "Slow";
-    if (bpm < 100) return "Moderate";
-    if (bpm < 120) return "Medium";
-    if (bpm < 140) return "Fast";
-    if (bpm < 160) return "Very Fast";
+    if (!bpm) {
+      return "Unknown tempo";
+    }
+    if (bpm < 60) {
+      return "Very Slow";
+    }
+    if (bpm < 80) {
+      return "Slow";
+    }
+    if (bpm < 100) {
+      return "Moderate";
+    }
+    if (bpm < 120) {
+      return "Medium";
+    }
+    if (bpm < 140) {
+      return "Fast";
+    }
+    if (bpm < 160) {
+      return "Very Fast";
+    }
     return "Extremely Fast";
   };
 
@@ -263,6 +295,17 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
       <div className="w-full flex items-center justify-start">
         <span className="font-noto text-sm text-yellow-200 mb-2">アップロード</span>
       </div>
+      {/* Persistent error/success message area */}
+      {(error || success) && (
+        <div
+          className={`mb-4 p-3 rounded text-sm font-medium transition-colors duration-200 ${
+            error ? 'bg-red-900/80 text-red-300 border border-red-500' : 'bg-green-900/80 text-green-300 border border-green-500'
+          }`}
+          role={error ? 'alert' : 'status'}
+        >
+          {error || (success && 'Upload and separation successful!')}
+        </div>
+      )}
       {/* Drop zone */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -270,23 +313,43 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.4 }}
         className={`group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 hover:border-red-500/50 transition h-52 cursor-pointer overflow-hidden w-full max-w-md ${loading ? 'opacity-60 pointer-events-none' : ''}`}
-        onDrop={onDrop}
+        onDrop={handleDropWrapper}
         onDragOver={onDragOver}
         onClick={() => inputRef.current?.click()}
         aria-label="Audio file drop zone"
         data-tooltip-id="blade-upload-tooltip"
         data-tooltip-content="Click or drag audio file here"
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        style={{ outline: isDragActive ? '2px solid #fbbf24' : undefined }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/0 to-white/5 group-hover:from-red-500/10"></div>
         <UploadCloud className="relative z-10 w-16 h-16 text-white/50 group-hover:text-red-400 transition mb-3 animate-pulse" strokeWidth={1.5} />
         <p className="relative z-10 text-base text-white/60"><span className="underline">Summon</span> or drag & drop audio</p>
+        {/* File name/type display */}
+        {file ? (
+          <div className="mb-2 flex flex-col items-center w-full">
+            <div
+              className="px-3 py-1 bg-yellow-900/40 rounded-lg text-yellow-200 text-sm font-semibold max-w-full truncate text-center shadow border border-yellow-400/30 hover:bg-yellow-800/60 transition-all duration-150 cursor-pointer"
+              title={file.name}
+              style={{ maxWidth: '90%' }}
+            >
+              {file.name.length > 40
+                ? file.name.slice(0, 20) + '…' + file.name.slice(-16)
+                : file.name}
+            </div>
+            <span className="text-neutral-400 text-xs mt-1">{file.type || 'unknown type'}</span>
+          </div>
+        ) : (
+          <div className="mb-2 text-neutral-400 text-sm">No file selected</div>
+        )}
         <input
           type="file"
           accept="audio/*"
           onChange={onFileChange}
           ref={inputRef}
           className="sr-only"
-          aria-label="Upload audio"
+          aria-label="Upload audio file"
         />
       </motion.div>
       <Tooltip id="blade-upload-tooltip" />
@@ -474,19 +537,28 @@ const BladeUpload: React.FC<BladeUploadProps> = ({
                 </motion.div>
               )}
             </AnimatePresence>
-            {/* Upload button only if not loading */}
-            {!loading && (
+            {/* Upload and Reset buttons */}
+            <div className="flex gap-3 mt-2">
               <button
                 className="mt-4 w-full py-2 rounded-lg bg-gradient-to-r from-red-500 via-yellow-400 to-yellow-300 text-black font-bold shadow hover:brightness-110 transition disabled:opacity-60 flex items-center justify-center gap-2"
                 onClick={onUpload}
                 disabled={loading || !file}
-                aria-label="Upload and separate audio"
+                aria-label="Start upload"
                 data-tooltip-id="blade-upload-tooltip"
                 data-tooltip-content={loading ? 'Processing...' : 'Upload and separate'}
               >
                 <UploadCloud className="w-5 h-5" /> Upload & Separate
               </button>
-            )}
+              <button
+                type="button"
+                onClick={onReset}
+                disabled={loading || !file}
+                aria-label="Reset upload"
+                className="mt-4 w-full py-2 rounded-lg bg-neutral-700 text-neutral-100 font-semibold shadow hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-yellow-300 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-5 h-5" /> Reset
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
