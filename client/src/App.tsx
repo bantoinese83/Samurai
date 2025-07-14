@@ -78,6 +78,7 @@ function App() {
   const [showVault, setShowVault] = useState(false);
   const [howOpen, setHowOpen] = useState(false);
   const [vaultStats, setVaultStats] = useState<{ count: number, totalSize: number, uniqueUsers: number }>({ count: 0, totalSize: 0, uniqueUsers: 0 });
+  const [jobCompleted, setJobCompleted] = useState(false);
 
   // --- Refs for DOM and WaveSurfer instances ---
   const inputRef = useRef<HTMLInputElement>(null);
@@ -185,6 +186,7 @@ function App() {
     setStems([]);
     setAudioFeatures(null);
     setStemAnalyses(null);
+    setJobCompleted(false);
 
     // First get the job ID from the upload
     const result = await uploadAndTrackSeparation(file, () => {}, () => {});
@@ -225,7 +227,6 @@ function App() {
         setProgress(100);
         setProgressMessage('Audio separation completed!');
         toast.success('Audio separation completed!', { icon: <CheckCircle className="w-5 h-5 text-green-400" /> });
-        // Use the jobId directly from the closure, not from state
         fetch(`${API_URL}/download/${jobId}`)
           .then(res => {
             if (!res.ok) {
@@ -249,34 +250,16 @@ function App() {
                 total += stemBlob.size;
               }
             }
-            // --- Await all uploads to Supabase Vault and handle errors robustly ---
-            setProgressMessage('Uploading stems to Scroll Chamber...');
-            setLoading(true);
-            let uploadErrors: string[] = [];
-            await Promise.all(newStems.map(async (stem) => {
-              try {
-                await uploadStemToVault(stem, file.name, stemAnalyses?.[stem.name] || null);
-              } catch (e: any) {
-                uploadErrors.push(stem.name + ': ' + (e?.message || 'Unknown error'));
-                toast.error('Stem vault upload failed: ' + stem.name + (e?.message ? (': ' + e.message) : ''));
-              }
-            }));
-            setLoading(false);
-            setProgressMessage('Stems ready!');
             setStems(newStems);
             setStemSizes(sizes);
             setTotalStemsSize(total);
-            // Set default volumes and mutes
             const vols: {[name: string]: number} = {};
             const mutes: {[name: string]: boolean} = {};
             newStems.forEach(stem => { vols[stem.name] = 1; mutes[stem.name] = false; });
             setStemVolumes(vols);
             setStemMutes(mutes);
             setSoloStem(null);
-            // If any upload failed, set error state
-            if (uploadErrors.length > 0) {
-              setError('Some stems failed to upload to Scroll Chamber: ' + uploadErrors.join(', '));
-            }
+            setJobCompleted(true);
           })
           .catch((err) => {
             console.error('Download error:', err);
@@ -324,6 +307,41 @@ function App() {
     };
     eventSourceRef.current = eventSource;
   }
+
+  // --- Race-condition-free upload: useEffect triggers upload only when both jobCompleted and geminiAnalysis are set ---
+  useEffect(() => {
+    if (!jobCompleted || !geminiAnalysis || stems.length === 0) {
+      return;
+    }
+    (async () => {
+      setProgressMessage('Uploading stems to Scroll Chamber...');
+      setLoading(true);
+      const uploadErrors: string[] = [];
+      await Promise.all(stems.map(async (stem) => {
+        try {
+          await uploadStemToVault(
+            stem,
+            file?.name || '',
+            geminiAnalysis,
+            geminiAnalysis.tags || [],
+            geminiAnalysis.description || '',
+            geminiAnalysis.transcription || ''
+          );
+        } catch (e: unknown) {
+          const errMsg = e instanceof Error ? e.message : String(e);
+          uploadErrors.push(stem.name + ': ' + errMsg);
+          toast.error('Stem vault upload failed: ' + stem.name + (errMsg ? (': ' + errMsg) : ''));
+        }
+      }));
+      setLoading(false);
+      setProgressMessage('Stems ready!');
+      if (uploadErrors.length > 0) {
+        setError('Some stems failed to upload to Scroll Chamber: ' + uploadErrors.join(', '));
+      }
+    })();
+    // Only run once per job completion
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobCompleted, geminiAnalysis]);
 
   // --- Volume and Mute Handlers ---
   function handleStemVolume(name: string, value: number) {
@@ -610,16 +628,15 @@ function App() {
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-red-600/30 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-yellow-400/15 rounded-full blur-2xl"></div>
       </div>
-      {/* DAW-Style Header */}
       <header className="relative z-20 px-0 py-0 border-b border-yellow-700 bg-gradient-to-r from-neutral-900/95 to-neutral-800/90 shadow-lg header-wave-bg">
-        <div className="grid grid-cols-3 items-center w-full max-w-[1600px] mx-auto px-8 py-3 gap-2 min-h-[7.5rem]">
+        <div className="flex flex-row items-center justify-between w-full max-w-[1600px] mx-auto px-8 py-3 gap-8 min-h-[7.5rem]">
           {/* Logo + Tagline */}
-          <div className="flex flex-col items-start gap-1 select-none z-10">
+          <div className="flex flex-col items-start gap-1 select-none z-10 min-w-[220px]">
             <img src={samuraiLogo} alt="Samurai Logo" className="h-16 w-auto mb-1 drop-shadow-lg" style={{ display: 'inline-block' }} />
             <span className="text-lg font-bold text-yellow-300 animate-fade-in-slow drop-shadow-md mt-1 hidden md:inline-block font-russo">Unleash Your Tracks. Separate. Remix. Master.</span>
           </div>
           {/* Glitch Text Centered */}
-          <div className="relative flex flex-col items-center justify-center z-0">
+          <div className="relative flex flex-col items-center justify-center flex-1 z-0 min-w-0">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-full h-full bg-gradient-to-r from-yellow-400/10 via-transparent to-yellow-400/10 blur-2xl rounded-full" />
             </div>
@@ -627,39 +644,29 @@ function App() {
               <SamuraiGlitchText />
             </div>
           </div>
-          {/* Navigation Block */}
-          <nav className="flex flex-col items-end gap-2 z-10">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-neutral-900/80 border border-yellow-400 shadow-lg backdrop-blur-md font-russo">
-              <button
-                className={[
-                  'group px-5 py-2 rounded-lg font-bold border-2 flex items-center gap-3 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400',
-                  showVault ? 'bg-yellow-400 border-yellow-500 shadow-lg ring-2 ring-yellow-300/40' : 'bg-neutral-900 border-yellow-400 shadow',
-                  'hover:bg-yellow-400 hover:border-yellow-500',
-                ].join(' ')}
-                onClick={() => setShowVault(v => !v)}
-                aria-label="Open Scroll Chamber"
-                aria-pressed={showVault}
-                tabIndex={0}
-              >
-                <Archive className={`w-6 h-6 transition-colors ${showVault ? 'text-black' : 'text-yellow-300'} group-hover:text-black`} />
-                <span className="flex flex-col items-start leading-tight">
-                  <span className={`font-russo text-base transition-colors ${showVault ? 'text-black' : 'text-yellow-300'} group-hover:text-black`}>Scroll Chamber</span>
-                  <span className={`font-samuraijp text-xs ml-1 transition-colors ${showVault ? 'text-black' : 'text-yellow-200/90'} group-hover:text-black`}>巻物の間</span>
-                </span>
-              </button>
-              {showVault && (
-                <div className="ml-4 flex flex-col items-start text-yellow-200 text-xs font-mono">
-                  <span>Stems: <b>{vaultStats.count}</b></span>
-                  <span>Total Size: <b>{(vaultStats.totalSize / (1024 * 1024)).toFixed(2)} MB</b></span>
-                </div>
-              )}
-              <button onClick={() => setHowOpen(true)} className="px-3 py-1 rounded bg-yellow-400 text-black font-bold border border-yellow-500 hover:bg-yellow-300 transition text-sm">How it Works?</button>
-            </div>
-            <span className="font-samuraijp text-base text-yellow-300 hidden sm:inline drop-shadow-md">音楽工房</span>
-          </nav>
         </div>
-        {/* KatanaDivider removed for a cleaner header */}
       </header>
+      {/* Hero Section with Scroll Chamber/Stem Vault button, How it Works, and stats */}
+      <section className="w-full flex flex-col items-center justify-center py-10 bg-gradient-to-b from-yellow-900/10 to-transparent">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8 max-w-3xl w-full">
+          <button
+            className={["group px-8 py-5 rounded-2xl font-bold border-2 flex flex-col items-center gap-2 text-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-400 border-yellow-500 shadow-lg hover:bg-yellow-300 hover:border-yellow-600"].join(' ')}
+            onClick={() => setShowVault(v => !v)}
+            aria-label="Open Scroll Chamber"
+            aria-pressed={showVault}
+            tabIndex={0}
+          >
+            <Archive className="w-10 h-10 text-black mb-1" />
+            <span className="font-russo text-2xl text-black">Scroll Chamber</span>
+            <span className="font-samuraijp text-base text-black/80">巻物の間</span>
+          </button>
+          <div className="flex flex-col items-center gap-2 bg-neutral-900/80 border border-yellow-400 rounded-xl px-8 py-4 shadow-lg">
+            <span className="text-yellow-200 text-lg font-mono">Stems: <b>{vaultStats.count}</b></span>
+            <span className="text-yellow-200 text-lg font-mono">Total Size: <b>{(vaultStats.totalSize / (1024 * 1024)).toFixed(2)} MB</b></span>
+            <button onClick={() => setHowOpen(true)} className="mt-2 px-4 py-2 rounded bg-yellow-400 text-black font-bold border border-yellow-500 hover:bg-yellow-300 transition text-base">How it Works?</button>
+          </div>
+        </div>
+      </section>
       <HowItWorksModal open={howOpen} onClose={() => setHowOpen(false)} />
       {showVault ? (
         <StemVault onStatsUpdate={setVaultStats} />

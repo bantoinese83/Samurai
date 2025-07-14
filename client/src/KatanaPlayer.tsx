@@ -6,6 +6,7 @@ import { Tooltip } from 'react-tooltip';
 import toast from 'react-hot-toast';
 import TagsDisplay from './TagsDisplay';
 import type { Stem, AudioFeatures, GeminiAnalysis } from './types';
+import WaveSurfer from 'wavesurfer.js';
 
 interface KatanaPlayerProps {
   stems: Stem[];
@@ -19,7 +20,7 @@ interface KatanaPlayerProps {
   onStemMute: (name: string) => void;
   onStemVolume: (name: string, value: number) => void;
   waveContainersRef: React.RefObject<{ [name: string]: HTMLDivElement | null }>;
-  waveSurfersRef: React.RefObject<{ [name: string]: any }>;
+  waveSurfersRef: React.RefObject<{ [name: string]: WaveSurfer | null }>;
   soloStem: string | null;
   onStemSolo: (name: string) => void;
   stemAnalyses?: { [stemName: string]: AudioFeatures } | null;
@@ -56,7 +57,7 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
 }) => {
   // Enhanced state management
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration] = useState(0);
+  // Removed unused duration state
 
   // Master volume control
   const handleMasterVolumeChange = (value: number) => {
@@ -69,7 +70,9 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
     const waveSurfers = waveSurfersRef.current || {};
     // Find the first available instance to get duration and current time
     const wsArr = Object.values(waveSurfers).filter(Boolean);
-    if (wsArr.length === 0) return;
+    if (wsArr.length === 0) {
+      return;
+    }
     // Try to get the current time from the first instance
     const firstWS = wsArr[0];
     let newTime = 0;
@@ -79,7 +82,7 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
       newTime = Math.max(0, currentTime - 10);
     }
     // Seek all instances
-    wsArr.forEach((ws: any) => {
+    wsArr.forEach((ws) => {
       if (ws && typeof ws.seekTo === 'function' && typeof ws.getDuration === 'function') {
         ws.seekTo(newTime / ws.getDuration());
       }
@@ -93,7 +96,9 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
     const waveSurfers = waveSurfersRef.current || {};
     // Find the first available instance to get duration and current time
     const wsArr = Object.values(waveSurfers).filter(Boolean);
-    if (wsArr.length === 0) return;
+    if (wsArr.length === 0) {
+      return;
+    }
     const firstWS = wsArr[0];
     let newTime = 0;
     let duration = 0;
@@ -104,7 +109,7 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
       newTime = currentTime + 10;
     }
     // Seek all instances
-    wsArr.forEach((ws: any) => {
+    wsArr.forEach((ws) => {
       if (ws && typeof ws.seekTo === 'function' && typeof ws.getDuration === 'function') {
         ws.seekTo(newTime / ws.getDuration());
       }
@@ -115,7 +120,9 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
 
   // Download all stems as ZIP
   const handleDownloadAll = async () => {
-    if (stems.length === 0) return;
+    if (stems.length === 0) {
+      return;
+    }
     
     try {
       const JSZip = (await import('jszip')).default;
@@ -164,13 +171,27 @@ const KatanaPlayer: React.FC<KatanaPlayerProps> = ({
   };
 
   const getBpmDescription = (bpm?: number) => {
-    if (!bpm) return "Unknown";
-    if (bpm < 60) return "Very Slow";
-    if (bpm < 80) return "Slow";
-    if (bpm < 100) return "Moderate";
-    if (bpm < 120) return "Medium";
-    if (bpm < 140) return "Fast";
-    if (bpm < 160) return "Very Fast";
+    if (!bpm) {
+      return "Unknown";
+    }
+    if (bpm < 60) {
+      return "Very Slow";
+    }
+    if (bpm < 80) {
+      return "Slow";
+    }
+    if (bpm < 100) {
+      return "Moderate";
+    }
+    if (bpm < 120) {
+      return "Medium";
+    }
+    if (bpm < 140) {
+      return "Fast";
+    }
+    if (bpm < 160) {
+      return "Very Fast";
+    }
     return "Extremely Fast";
   };
 
