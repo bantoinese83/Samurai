@@ -3,7 +3,7 @@ werkzeug
 demucs
 flask-cors
 librosa
-essentia-tensorflow
+essentia
 soundfile
 numpy<2.0.0
 scipy 
