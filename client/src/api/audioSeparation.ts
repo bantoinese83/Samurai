@@ -55,22 +55,19 @@ export async function uploadStemToVault(
   try {
     fileBlob = await fetch(stem.url).then(r => r.blob());
   } catch (e) {
-    console.error('Failed to fetch stem blob:', e);
-    throw new Error('Failed to fetch stem blob: ' + (e?.message || e));
+    const errMsg = (typeof e === 'object' && e !== null && 'message' in e) ? (e as any).message : String(e);
+    console.error('Failed to fetch stem blob:', errMsg);
+    throw new Error('Failed to fetch stem blob: ' + errMsg);
   }
   const path = `${Date.now()}_${stem.name}`;
   // Upload to bucket
-  const { data: storageData, error: storageError } = await supabase.storage.from('stem-vault').upload(path, fileBlob, { upsert: false });
+  const { error: storageError } = await supabase.storage.from('stem-vault').upload(path, fileBlob, { upsert: false });
   if (storageError) {
     console.error('Supabase storage upload error:', storageError);
     throw new Error('Failed to upload to storage: ' + storageError.message + ' (Check if bucket "stem-vault" exists and is public)');
   }
   // Get public URL
-  const { data: publicUrlData, error: publicUrlError } = supabase.storage.from('stem-vault').getPublicUrl(path);
-  if (publicUrlError) {
-    console.error('Supabase getPublicUrl error:', publicUrlError);
-    throw new Error('Failed to get public URL: ' + publicUrlError.message);
-  }
+  const { data: publicUrlData } = supabase.storage.from('stem-vault').getPublicUrl(path);
   const publicUrl = publicUrlData?.publicUrl;
   if (!publicUrl) {
     console.error('No public URL returned for path:', path, publicUrlData);
@@ -90,10 +87,7 @@ export async function uploadStemToVault(
   }).select('id');
   if (dbError) {
     console.error('Supabase DB insert error:', dbError);
-    throw new Error('Failed to insert stem metadata: ' + dbError.message + ' (Check if table "stems" exists and has correct columns)');
+    throw new Error('Failed to insert metadata: ' + dbError.message);
   }
-  if (!insertData || !insertData[0]?.id) {
-    console.error('No ID returned from stems table insert:', insertData);
-    throw new Error('No ID returned from stems table insert. Check table schema.');
-  }
+  return insertData;
 } 

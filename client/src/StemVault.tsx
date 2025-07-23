@@ -7,7 +7,6 @@ import {
   PauseCircle,
   Star,
   StarOff,
-  BadgePlus,
   Download,
   CheckSquare,
   Square,
@@ -24,7 +23,6 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import samuraiLogo from "./assets/logo/samurai-logo-v1-removebg.png";
-import SamuraiGlitchText from "./SamuraiGlitchText";
 // Replace lodash import with direct groupBy implementation to avoid dependency issues:
 // import _ from "lodash";
 function groupBy<T, K extends keyof any>(array: T[], getKey: (item: T) => K): Record<K, T[]> {

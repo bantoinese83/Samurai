@@ -67,7 +67,7 @@ const StemWaveform: React.FC<StemWaveformProps> = ({
             value={volume}
             onChange={e => onVolume(Number(e.target.value))}
             className="h-24 w-2 bg-white/10 rounded-full accent-red-500 cursor-pointer vertical-slider"
-            style={{ writingMode: 'bt-lr', WebkitAppearance: 'slider-vertical' }}
+            style={{ writingMode: 'vertical-lr' as React.CSSProperties['writingMode'], WebkitAppearance: 'slider-vertical' }}
             disabled={loading}
             aria-label={`Volume for ${stem.name}`}
             data-tooltip-id="stem-tooltip"
