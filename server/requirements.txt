@@ -11,3 +11,4 @@ google-genai
 websockets
 flask-sock 
 gunicorn
+python-dotenv
