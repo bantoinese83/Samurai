@@ -61,7 +61,7 @@ Or run locally (see below).
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-org/samurai.git
+git clone https://github.com/bantoinese83/samurai.git
 cd samurai
 ```
 
@@ -139,8 +139,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 📬 Contact
 
-- Project Lead: [Your Name](mailto:your.email@example.com)
-- GitHub: [github.com/your-org/samurai](https://github.com/your-org/samurai)
+- Project Lead: [Bryan Antoine](mailto:b.antoine.se@gmail.com)
+- GitHub: [github.com/bantoinese83/samurai](https://github.com/bantoinese83/samurai)
 
 ---
 
