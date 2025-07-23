@@ -10,3 +10,4 @@ scipy
 google-genai
 websockets
 flask-sock 
+gunicorn
