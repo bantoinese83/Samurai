@@ -43,8 +43,8 @@
 
 ## 🚀 Live Demo
 
-- [Frontend on Vercel](https://your-vercel-url.vercel.app) (replace with your actual URL)
-- [Backend on Render](https://your-render-url.onrender.com) (replace with your actual URL)
+- **Frontend:** [https://samurai-lac.vercel.app/](https://samurai-lac.vercel.app/)
+- **Backend:** [https://samurai-akrb.onrender.com/](https://samurai-akrb.onrender.com/)
 
 ---
 
@@ -72,7 +72,7 @@ cd samurai
 - **Frontend:**
   - Create `client/.env` and add:
     ```
-    VITE_API_URL=http://localhost:5001
+    VITE_API_URL=https://samurai-akrb.onrender.com
     VITE_SUPABASE_URL=your_supabase_url
     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
     ```
@@ -85,7 +85,7 @@ source ../venv/bin/activate
 pip install -r requirements.txt
 python audio_api.py
 ```
-- The backend will run at http://localhost:5001
+- The backend will run at http://localhost:5001 (or use the deployed URL above)
 
 ### 4. Run the frontend (React/Vite)
 ```bash
@@ -93,10 +93,10 @@ cd ../client
 npm install
 npm run dev
 ```
-- The frontend will run at http://localhost:5173
+- The frontend will run at http://localhost:5173 (or use the deployed URL above)
 
 ### 5. Open in your browser
-Visit [http://localhost:5173](http://localhost:5173)
+Visit [http://localhost:5173](http://localhost:5173) or [https://samurai-lac.vercel.app/](https://samurai-lac.vercel.app/)
 
 ---
 
@@ -127,7 +127,7 @@ docker run -p 5001:5001 --env-file server/.env samurai-backend
 3. Set build command: `npm run build`
 4. Set output directory: `dist`
 5. Add environment variables:
-   - `VITE_API_URL=https://your-backend-url.onrender.com`
+   - `VITE_API_URL=https://samurai-akrb.onrender.com`
    - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 6. Deploy!
 
@@ -137,7 +137,7 @@ docker run -p 5001:5001 --env-file server/.env samurai-backend
 
 ### Separate Audio (POST /separate)
 ```bash
-curl -X POST -F "file=@path_to_your_audio.mp3" https://your-backend-url.onrender.com/separate
+curl -X POST -F "file=@path_to_your_audio.mp3" https://samurai-akrb.onrender.com/separate
 ```
 - Returns: JSON with job ID, progress, audio features, AI analysis, and download links.
 
@@ -153,7 +153,7 @@ curl -X POST -F "file=@path_to_your_audio.mp3" https://your-backend-url.onrender
   "message": "Audio separation completed!",
   "audio_features": { "bpm": 120.5, "key": "C major", ... },
   "gemini_analysis": { "tags": ["hip-hop", ...], "description": "..." },
-  "download_url": "https://.../results/yourfile.zip"
+  "download_url": "https://samurai-akrb.onrender.com/results/yourfile.zip"
 }
 ```
 
@@ -164,7 +164,7 @@ curl -X POST -F "file=@path_to_your_audio.mp3" https://your-backend-url.onrender
 - **Backend:**
   - `GEMINI_API_KEY` (for AI analysis)
 - **Frontend:**
-  - `VITE_API_URL` (backend URL)
+  - `VITE_API_URL` (backend URL, e.g., `https://samurai-akrb.onrender.com`)
   - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (for Stem Vault)
 
 ---
